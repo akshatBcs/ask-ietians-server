@@ -56,7 +56,7 @@ router.get("/:id", async (req, res) => {
 router.put("/like/:id", auth, async (req, res) => {
   const reply = await Reply.findById(req.params.id);
   if (!reply) return res.status(400).send("reply doesn't exists");
-  if (reply.author == req.user._id)
+  if (reply.author._id == req.user._id)
     return res.status(400).send("You can't upvote your own reply");
   const upvoteArray = reply.upvotes;
   const index = upvoteArray.indexOf(req.user.users[0].localId);
@@ -89,8 +89,8 @@ router.put("/like/:id", auth, async (req, res) => {
 router.put("/dislike/:id", auth, async (req, res) => {
   const reply = await Reply.findById(req.params.id);
   if (!reply) return res.status(400).send("reply doesn't exists");
-  if (reply.author == req.user._id)
-    return res.status(400).send("You can't upvote your own reply");
+  // if (reply.author == req.user._id)
+  //   return res.status(400).send("You can't downvote your own reply");
   const upvoteArray = reply.upvotes;
   const upindex = upvoteArray.indexOf(req.user.users[0].localId);
 
