@@ -4,6 +4,8 @@ const { Reply, validateReply } = require("../models/replies");
 const _ = require("lodash");
 const { Post } = require("../models/post");
 const { FireUser } = require("../models/fireuser");
+
+const nodemailer = require('nodemailer');
 const router = express.Router();
 // '/reply/
 router.post("/create/:id", auth, async (req, res) => {
@@ -118,4 +120,45 @@ router.put("/dislike/:id", auth, async (req, res) => {
     ;
   res.send(reply_new);
 });
+
+
+router.get("/report/:id",
+  //  auth,
+  async (req, res) => {
+    try {
+      const reply = await Reply.find({ _id: req.params.id })
+        // .populate("author", "name")
+        ;
+      // const result = await post[0].save();
+      res.send(reply[0]);
+
+      var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'akshat7509999412@gmail.com',
+          pass: 'duljlaukzqeynglw'
+        }
+      });
+
+      var mailOptions = {
+        from: 'dustinhendersoncoc@gmail.com',
+        to: 'akshat7509999412@gmail.com',
+        subject: 'Sending Email using nodemailer',
+        html: `<pre>${reply[0]}</pre>`
+      };
+
+      transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+          console.log(error);
+        } else {
+          console.log('Email sent: ' + info.response);
+        }
+      });
+    } catch (e) {
+      return res.send(e.message);
+    }
+  });
+
+
+
 module.exports = router;

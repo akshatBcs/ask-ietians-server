@@ -7,19 +7,21 @@ const { User } = require("../models/user");
 const auth = require("../middleware/auth");
 const { Tag } = require("../models/tag");
 const { FireUser } = require("../models/fireuser");
+
+const nodemailer = require('nodemailer');
 // /posts/
 router.get("/", async (req, res) => {
   let all_posts = await Post.find()
-  // .populate("author", "name -_id")
-  ;
+    // .populate("author", "name -_id")
+    ;
   res.send(all_posts);
 });
 
 router.get("/:id", async (req, res) => {
   try {
     const post = await Post.find({ _id: req.params.id })
-    // .populate("author", "name")
-    ;
+      // .populate("author", "name")
+      ;
     const views = post[0].views;
     post[0].views = views + 1;
     const result = await post[0].save();
@@ -48,7 +50,7 @@ router.post("/create", auth, async (req, res) => {
     title: req.body.title,
     tags: tags_array,
     description: req.body.description,
-    author:userData,
+    author: userData,
     views: 1,
   });
   try {
@@ -66,14 +68,14 @@ router.put("/like/:id", auth, async (req, res) => {
     return res.status(400).send("You can't upvote your own post");
   const upvoteArray = post.upvotes;
   const index = upvoteArray.indexOf(req.user.users[0].localId);
-  
+
   const downvoteArray = post.downvotes;
   const downindex = downvoteArray.indexOf(req.user.users[0].localId);
 
   if (index === -1 && downindex === -1) {
     upvoteArray.push(req.user.users[0].localId);
   }
-  else if(index === -1 && downindex!== -1){
+  else if (index === -1 && downindex !== -1) {
     upvoteArray.push(req.user.users[0].localId);
     downvoteArray.pop(req.user.users[0].localId);
 
@@ -84,8 +86,8 @@ router.put("/like/:id", auth, async (req, res) => {
   post.upvotes = upvoteArray;
   const result = await post.save();
   const post_new = await Post.find({ _id: post._id })
-  // .populate("author", "name")
-  ;
+    // .populate("author", "name")
+    ;
   res.send(post_new);
 });
 
@@ -94,7 +96,7 @@ router.put("/dislike/:id", auth, async (req, res) => {
   if (!post) return res.status(400).send("Post doesn't exists");
   // if (post.author === req.user.users[0].localId)
   //   return res.status(400).send("You can't upvote your own post");
-  
+
   const upvoteArray = post.upvotes;
   const upindex = upvoteArray.indexOf(req.user.users[0].localId);
 
@@ -103,10 +105,10 @@ router.put("/dislike/:id", auth, async (req, res) => {
   if (index === -1 && upindex === -1) {
     downvoteArray.push(req.user.users[0].localId);
   }
-  else if(index === -1 && upindex !== -1) {
+  else if (index === -1 && upindex !== -1) {
 
     downvoteArray.push(req.user.users[0].localId);
-    
+
     upvoteArray.pop(req.user.users[0].localId);
   }
   else {
@@ -115,9 +117,48 @@ router.put("/dislike/:id", auth, async (req, res) => {
   post.downvotes = downvoteArray;
   const result = await post.save();
   const post_new = await Post.find({ _id: post._id })
-  // .populate("author", "name")
-  ;
+    // .populate("author", "name")
+    ;
   res.send(post_new);
 });
+
+
+router.get("/report/:id",
+  //  auth,
+  async (req, res) => {
+    try {
+      const post = await Post.find({ _id: req.params.id })
+        // .populate("author", "name")
+        ;
+      // const result = await post[0].save();
+      res.send(post[0]);
+
+      var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'akshat7509999412@gmail.com',
+          pass: 'duljlaukzqeynglw'
+        }
+      });
+
+      var mailOptions = {
+        from: 'dustinhendersoncoc@gmail.com',
+        to: 'akshat7509999412@gmail.com',
+        subject: 'Sending Email using nodemailer',
+        html: `<pre>${post[0]}</pre>`
+      };
+
+      transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+          console.log(error);
+        } else {
+          console.log('Email sent: ' + info.response);
+        }
+      });
+    } catch (e) {
+      return res.send(e.message);
+    }
+  });
+
 
 module.exports = router;
