@@ -121,6 +121,29 @@ router.put("/dislike/:id", auth, async (req, res) => {
   res.send(reply_new);
 });
 
+router.delete('/delete/:id',
+  // auth,
+  async (req, res) => {
+    try {
+      let post = await Reply.findById(req.params.id);
+      if (!post) {
+        return res.status(404).send('Not Found')
+      }
+      // if (note.user.toString() !== req.user.id) {
+      //   return res.status(401).send('not allowed')
+      // }
+      post = Reply.findByIdAndDelete(req.params.id, () => {
+        res.send('reply deleted');
+      })
+
+    } catch (error) {
+      console.log(error);
+
+      res.status(500).send('some internal error occured');
+    }
+  })
+
+
 
 router.get("/report/:id",
   //  auth,
