@@ -64,8 +64,8 @@ router.post("/create", auth, async (req, res) => {
 router.put("/like/:id", auth, async (req, res) => {
   const post = await Post.findById(req.params.id);
   if (!post) return res.status(400).send("Post doesn't exists");
-  if (post.author._id === req.user.users[0].localId)
-    return res.status(400).send("You can't upvote your own post");
+  if (post.author.uid === req.user.users[0].localId)
+    return res.status(400).send({message:"You can't upvote your own post"});
   const upvoteArray = post.upvotes;
   const index = upvoteArray.indexOf(req.user.users[0].localId);
 
