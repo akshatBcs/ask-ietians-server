@@ -7,7 +7,7 @@ const { User } = require("../models/user");
 const auth = require("../middleware/auth");
 const { Tag } = require("../models/tag");
 const { FireUser } = require("../models/fireuser");
-
+require('dotenv').config()
 const nodemailer = require('nodemailer');
 // /posts/
 router.get("/", async (req, res) => {
@@ -145,29 +145,29 @@ router.delete('/delete/:id',
   })
 
 
-router.get("/report/:id",
-  //  auth,
+router.post("/report/:id",
+  auth,
   async (req, res) => {
     try {
-      const post = await Post.find({ _id: req.params.id })
+      const post = await Post.find({ _id: req.params.id }).select(['-upvotes', '-downvotes'])
         // .populate("author", "name")
         ;
       // const result = await post[0].save();
-      res.send(post[0]);
+      // res.send(post[0]);
 
       var transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-          user: 'akshat7509999412@gmail.com',
-          pass: 'duljlaukzqeynglw'
+          user: process.env.USER,
+          pass: process.env.PASS
         }
       });
 
       var mailOptions = {
-        from: 'dustinhendersoncoc@gmail.com',
-        to: 'akshat7509999412@gmail.com',
+        from: req.user.users[0].email,
+        to: 'askietian@gmail.com',
         subject: 'Sending Email using nodemailer',
-        html: `<pre>${post[0]}</pre>`
+        html: `<pre>${post[0]}<br>${req.body.message}</pre>`
       };
 
       transporter.sendMail(mailOptions, function (error, info) {
@@ -175,10 +175,11 @@ router.get("/report/:id",
           console.log(error);
         } else {
           console.log('Email sent: ' + info.response);
+          res.status(200).send({message:'success'})
         }
       });
     } catch (e) {
-      return res.send(e.message);
+      return res.send(e);
     }
   });
 

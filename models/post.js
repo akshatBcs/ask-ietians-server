@@ -22,7 +22,6 @@ const postSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: true,
     // minlength: 5,
     maxlength: 5000,
     // required: true,
