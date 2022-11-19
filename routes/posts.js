@@ -14,7 +14,28 @@ router.get("/", async (req, res) => {
   let all_posts = await Post.find()
     // .populate("author", "name -_id")
     ;
-  res.send(all_posts);
+  let sorted = []
+  function epcs(date) {
+    let td = date - 1660608000000
+    return td
+  }
+  function rate(post) {
+    const s = post.upvotes.length - post.downvotes.length
+    const order = Math.log(Math.max(Math.abs(s), 1)) / Math.log(10)
+    let sign = 0
+    if (s > 0) sign = 1
+    else if (s === 0) sign = 0
+    else sign = -1
+    seconds = epcs(post.time) 
+    console.log(sign, order, seconds / 450000)
+    return Math.round(sign * s + seconds / 450000, 7)
+  }
+
+  all_posts.forEach(post => {
+    sorted.push({ ...post.toJSON(), score: rate(post) })
+  });
+
+  res.send(sorted);
 });
 
 router.get("/:id", async (req, res) => {
@@ -65,7 +86,7 @@ router.put("/like/:id", auth, async (req, res) => {
   const post = await Post.findById(req.params.id);
   if (!post) return res.status(400).send("Post doesn't exists");
   if (post.author.uid === req.user.users[0].localId)
-    return res.status(400).send({message:"You can't upvote your own post"});
+    return res.status(400).send({ message: "You can't upvote your own post" });
   const upvoteArray = post.upvotes;
   const index = upvoteArray.indexOf(req.user.users[0].localId);
 
@@ -175,7 +196,7 @@ router.post("/report/:id",
           console.log(error);
         } else {
           console.log('Email sent: ' + info.response);
-          res.status(200).send({message:'success'})
+          res.status(200).send({ message: 'success' })
         }
       });
     } catch (e) {
