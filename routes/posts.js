@@ -27,7 +27,7 @@ router.get("/", async (req, res) => {
     else if (s === 0) sign = 0
     else sign = -1
     seconds = epcs(post.time) 
-    console.log(sign, order, seconds / 450000)
+    // console.log(sign, order, seconds / 450000)
     return Math.round(sign * s + seconds / 450000, 7)
   }
 
