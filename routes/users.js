@@ -11,6 +11,8 @@ const isAdmin = require("../middleware/admin");
 const { valid } = require("joi");
 const router = express.Router();
 
+require('dotenv').config()
+
 router.post("/register", async (req, res) => {
   const { error } = validateUser(req.body);
   if (error) return res.status(400).send(error.details[0].message);
@@ -26,7 +28,8 @@ router.post("/register", async (req, res) => {
     await user.save();
     const token = jwt.sign(
       { _id: user._id, isAdmin: user.isAdmin },
-      config.get("jwtPrivateKey")
+      
+    process.env.JWTPRIVATEKEY
     );
     res
       .header("x-auth-token", token)
@@ -68,7 +71,8 @@ router.post("/login", async (req, res) => {
 
   const token = jwt.sign(
     { _id: user._id, isAdmin: user.isAdmin },
-    config.get("jwtPrivateKey")
+    
+    process.env.JWTPRIVATEKEY
   );
   res.header("x-auth-token", token).send(token);
 });

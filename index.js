@@ -13,11 +13,6 @@ const mongodb = require('./db')
 const app = express();
 const db = mongodb();
 
-if (!config.get("jwtPrivateKey")) {
-  console.log("FATAL ERROR: JwtPrivateKey not defined");
-  process.exit(1);
-}
-
 
 
 
