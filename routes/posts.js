@@ -26,7 +26,7 @@ router.get("/", async (req, res) => {
     if (s > 0) sign = 1
     else if (s === 0) sign = 0
     else sign = -1
-    seconds = epcs(post.time) 
+    seconds = epcs(post.time)
     // console.log(sign, order, seconds / 450000)
     return Math.round(sign * s + seconds / 450000, 7)
   }
@@ -176,6 +176,12 @@ router.post("/report/:id",
       // const result = await post[0].save();
       // res.send(post[0]);
 
+      const userData = new FireUser({
+        name: req.user.users[0].displayName,
+        email: req.user.users[0].email,
+        uid: req.user.users[0].localId,
+      })
+
       var transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -188,9 +194,8 @@ router.post("/report/:id",
         from: req.user.users[0].email,
         to: 'askietian@gmail.com',
         subject: 'Sending Email using nodemailer',
-        html: `<pre>${post[0]}<br>${req.body.message}</pre>`
+        html: `<pre>${post[0]}<br>${req.body.message}<br>${userData}</pre>`
       };
-
       transporter.sendMail(mailOptions, function (error, info) {
         if (error) {
           console.log(error);

@@ -155,6 +155,12 @@ router.post("/report/:id",
         ;
       // const result = await post[0].save();
       res.send(reply[0]);
+      
+      const userData = new FireUser({
+        name: req.user.users[0].displayName,
+        email: req.user.users[0].email,
+        uid: req.user.users[0].localId,
+      })
 
       var transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -168,7 +174,7 @@ router.post("/report/:id",
         from: req.user.users[0].email,
         to: 'askietian@gmail.com',
         subject: 'Sending Email using nodemailer',
-        html: `<pre>${reply[0]}<br>${req.body.message}</pre>`
+        html: `<pre>${reply[0]}<br>${req.body.message}<br>${userData}</pre>`
       };
 
       transporter.sendMail(mailOptions, function (error, info) {
