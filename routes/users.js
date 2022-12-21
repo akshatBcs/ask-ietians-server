@@ -1,6 +1,8 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+
+const { Post } = require("../models/post");
 const bcrypt = require("bcrypt");
 const config = require("config");
 const _ = require("lodash");
@@ -13,69 +15,91 @@ const router = express.Router();
 
 require('dotenv').config()
 
-router.post("/register", async (req, res) => {
-  const { error } = validateUser(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
-  let user = await User.findOne({ email: req.body.email });
-  if (user) return res.status(400).send("User already registered");
-  user = new User({
-    name: req.body.name,
-    email: req.body.email,
-    password: await bcrypt.hash(req.body.password, 10),
-    role: req.body.role,
+
+router.get("/posts",
+  auth,
+  async (req, res) => {
+    try {
+
+      // const post = await Post.find({ author: { uid: req.user.users[0].localId } })
+      const post = await Post.find({ "author.uid": req.user.users[0].localId  })
+      if (!post) return res.send("this user doesn't exists in the database!");
+      res.send(post);
+    } catch (error) {
+      console.log(error)
+    }
+    // const user = await User.findById(req.params.id).select("-password");
   });
-  try {
-    await user.save();
-    const token = jwt.sign(
-      { _id: user._id, isAdmin: user.isAdmin },
-      
-    process.env.JWTPRIVATEKEY
-    );
-    res
-      .header("x-auth-token", token)
-      .header("access-control-expose-headers", "x-auth-token")
-      .send(_.pick(user, ["_id", "name", "email", "role"]));
-  } catch (err) {
-    console.log("error: ", err);
-  }
-});
 
-router.get("/:id", async (req, res) => {
-  const user = await User.findById(req.params.id).select("-password");
-  if (!user) return res.send("this user does'nt exists in the database!");
-  res.send(user);
-});
-
-router.post('/getuser', auth, async (req, res) => {
-  try {
-    res.status(200).send(req.user);
-
-  } catch (error) {
-    console.error(error)
-    res.status(500).send('some internal error occured')
-  }
-
-});
+  
+// router.get("/:id", async (req, res) => {
+//   const user = await User.findById(req.params.id).select("-password");
+//   if (!user) return res.send("this user does'nt exists in the database!");
+//   res.send(user);
+// });
 
 
-router.post("/login", async (req, res) => {
-  const { error } = validates(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
+// router.post("/register", async (req, res) => {
+//   const { error } = validateUser(req.body);
+//   if (error) return res.status(400).send(error.details[0].message);
+//   let user = await User.findOne({ email: req.body.email });
+//   if (user) return res.status(400).send("User already registered");
+//   user = new User({
+//     name: req.body.name,
+//     email: req.body.email,
+//     password: await bcrypt.hash(req.body.password, 10),
+//     role: req.body.role,
+//   });
+//   try {
+//     await user.save();
+//     const token = jwt.sign(
+//       { _id: user._id, isAdmin: user.isAdmin },
 
-  if (req.user) return res.send("User already logged in!");
-  let user = await User.findOne({ email: req.body.email });
-  if (!user) return res.status(400).send("Invalid email or password");
+//       process.env.JWTPRIVATEKEY
+//     );
+//     res
+//       .header("x-auth-token", token)
+//       .header("access-control-expose-headers", "x-auth-token")
+//       .send(_.pick(user, ["_id", "name", "email", "role"]));
+//   } catch (err) {
+//     console.log("error: ", err);
+//   }
+// });
 
-  const validpassword = await bcrypt.compare(req.body.password, user.password);
-  if (!validpassword) return res.status(400).send("invalid email or password");
 
-  const token = jwt.sign(
-    { _id: user._id, isAdmin: user.isAdmin },
-    
-    process.env.JWTPRIVATEKEY
-  );
-  res.header("x-auth-token", token).send(token);
-});
+// router.post('/getuser', auth, async (req, res) => {
+//   try {
+//     res.status(200).send(req.user);
+
+//   } catch (error) {
+//     console.error(error)
+//     res.status(500).send('some internal error occured')
+//   }
+
+// });
+
+
+// router.post("/login", async (req, res) => {
+//   const { error } = validates(req.body);
+//   if (error) return res.status(400).send(error.details[0].message);
+
+//   if (req.user) return res.send("User already logged in!");
+//   let user = await User.findOne({ email: req.body.email });
+//   if (!user) return res.status(400).send("Invalid email or password");
+
+//   const validpassword = await bcrypt.compare(req.body.password, user.password);
+//   if (!validpassword) return res.status(400).send("invalid email or password");
+
+//   const token = jwt.sign(
+//     { _id: user._id, isAdmin: user.isAdmin },
+
+//     process.env.JWTPRIVATEKEY
+//   );
+//   res.header("x-auth-token", token).send(token);
+// });
+
+
+
 
 // router.post("/logout", async (req, res) => {});
 module.exports = router;
